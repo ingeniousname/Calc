@@ -1,6 +1,8 @@
 #pragma once
 #include "multiplier.h"
 #include "compare.h"
+#include "number.h"
 
 
-int podziel(uint** a, uint** b, uint* rozmiar_a, uint* rozmiar_b);
+void podziel(Number* n1, Number* n2);
+void podziel_i_zwroc_modulo(Number* n1, Number* n2);

@@ -1,92 +1,110 @@
 #include "division.h"
+#include "Utility/pamiec.h"
 #include <stdio.h>
 #include <string.h>
 
-int podziel(uint** a, uint** b, uint* rozmiar_a, uint* rozmiar_b)
+void podziel(Number* n1, Number* n2)
 {
-	if (*rozmiar_b == 1 && (*b)[0] == 0)
+	if (n2->size == 1 && (n2->data)[0] == 0)
 	{
-		printf("blad: dzielenie przez zero!");
+		printf("Dzielenie przez 0!");
 		exit(EXIT_FAILURE);
 	}
 
 	//alokacja pamieci pomocniczej
-	uint* iloraz = zaalokuj_pamiec_uint(sizeof(uint) * (*rozmiar_a));
-	memset(iloraz, 0, sizeof(uint) * (*rozmiar_a));
-	uint* reszta = zaalokuj_pamiec_uint(sizeof(uint));
-	reszta[0] = 0;
-	uint* rozmiar_ilorazu = zaalokuj_pamiec_uint(sizeof(uint));
-	uint* rozmiar_reszty = zaalokuj_pamiec_uint(sizeof(uint));
-	*rozmiar_ilorazu = *rozmiar_a;
-	*rozmiar_reszty = 1;
+	Number iloraz, reszta;
+	zaalokuj(&iloraz, sizeof(uint) * (n1->size));
+	zaalokuj(&reszta, sizeof(uint));
+	memset(iloraz.data, 0, sizeof(uint) * (n1->size));
+	iloraz.size = n1->size;
+	reszta.data = 0;
+	reszta.size = 1;
+
+	
 	uint potega_liczby_2 = 1 << 31;
 
 
-	for (int i = *rozmiar_a * 32 - 1; i >= 0; i--)
+	// prosty algorytm z przesuwaniem bitow reszty z dzielenia, az nie stanie sie ona wieksza od dzielonej liczby
+
+	for (int i = n1->size * 32 - 1; i >= 0; i--)
 	{
 		if ((i + 1) % 32 == 0) potega_liczby_2 = 1 << 31;
-		pomnoz_przez_potege_2(&reszta, 1, rozmiar_reszty);
-		if (((*a)[i / 32] & potega_liczby_2) != 0)
-			reszta[0]++;
-		if (wiekszy_rowny(reszta, *b, *rozmiar_reszty, *rozmiar_b) != 0)
+		pomnoz_przez_potege_2(&reszta, 1);
+
+		if (((n1->data)[i / 32] & potega_liczby_2) != 0)
+			reszta.data[0]++;
+
+		if (wiekszy_rowny(&reszta, n2) != 0)
 		{
-			odejmij_cale_liczby(&reszta, b, rozmiar_reszty, rozmiar_b);
-			iloraz[i / 32] ^= potega_liczby_2;
+			odejmij_cale_liczby(&reszta, n2);
+			iloraz.data[i / 32] ^= potega_liczby_2;
 		}
 
 		potega_liczby_2 >>= 1;
 	}
 	
 
-	dopasuj_pamiec(&iloraz, rozmiar_a);
+	dopasuj(&iloraz);
 
+	//TODO ZWOLNIC PAMIEC
 
-	zwolnij_pamiec_uint(&reszta);
-	zwolnij_pamiec_uint(&rozmiar_reszty);
-	zwolnij_pamiec_uint(&rozmiar_ilorazu);
-
-	zwolnij_pamiec_uint(a);
-	*a = iloraz;
+	//zwolnij_pamiec_uint(&reszta);
+	//zwolnij_pamiec_uint(&rozmiar_reszty);
+	//zwolnij_pamiec_uint(&rozmiar_ilorazu);
+//
+	//zwolnij_pamiec_uint(a);
+	n1->data = iloraz.data;
 }
 
-//int divide_and_return_remainder(uint* a, uint* b, uint* a_size, uint* b_size)
-//{
-//	uint* quotient = (uint*)malloc(sizeof(uint) * (*a_size));
-//	memset(quotient, 0, sizeof(uint) * (*a_size));
-//	uint* remainder = (uint*)malloc(sizeof(uint));
-//	remainder[0] = 0;
-//	uint* quotient_size = (uint*)malloc(sizeof(uint));
-//	uint* remainder_size = (uint*)malloc(sizeof(uint));
-//	*quotient_size = *a_size;
-//	*remainder_size = 1;
-//	uint power_two = 1 << 31;
+void podziel_i_zwroc_modulo(Number* n1, Number* n2)
+{
+	if (n2->size == 1 && (n2->data)[0] == 0)
+	{
+		printf("Dzielenie przez 0!");
+		exit(EXIT_FAILURE);
+	}
+
+	//alokacja pamieci pomocniczej
+	Number iloraz, reszta;
+	zaalokuj(&iloraz, sizeof(uint) * (n1->size));
+	zaalokuj(&reszta, sizeof(uint));
+	memset(iloraz.data, 0, sizeof(uint) * (n1->size));
+	iloraz.size = n1->size;
+	reszta.data = 0;
+	reszta.size = 1;
+
+	uint potega_liczby_2 = 1 << 31;
+
+
+	// prosty algorytm z przesuwaniem bitow reszty z dzielenia, az nie stanie sie ona wieksza od dzielonej liczby
+
+	for (int i = n1->size * 32 - 1; i >= 0; i--)
+	{
+		if ((i + 1) % 32 == 0) potega_liczby_2 = 1 << 31;
+		pomnoz_przez_potege_2(&reszta, 1);
+
+		if (((n1->data)[i / 32] & potega_liczby_2) != 0)
+			reszta.data[0]++;
+
+		if (wiekszy_rowny(&reszta, n2) != 0)
+		{
+			odejmij_cale_liczby(&reszta, n2);
+			iloraz.data[i / 32] ^= potega_liczby_2;
+		}
+
+		potega_liczby_2 >>= 1;
+	}
+
+
+	dopasuj(&reszta);
+	n1->size = reszta.size;
+
+	// TODO ZWOLNIC PAMIEC
+
+	//zwolnij_pamiec_uint(&iloraz);
+	//zwolnij_pamiec_uint(&rozmiar_reszty);
+	//zwolnij_pamiec_uint(&rozmiar_ilorazu);
 //
-//
-//
-//	for (int i = *a_size * 32 - 1; i >= 0; i--)
-//	{
-//		if ((i + 1) % 32 == 0) power_two = 1 << 31;
-//		remainder = pomnoz_przez_potege_2(remainder, 1, remainder_size);
-//		if ((a[i / 32] & power_two) != 0)
-//			remainder[0]++;
-//		if (greater_equal(remainder, b, *remainder_size, *b_size) != 0)
-//		{
-//			remainder = odejmij_cale_liczby(remainder, b, remainder_size, b_size);
-//			quotient[i / 32] ^= power_two;
-//		}
-//
-//		power_two >>= 1;
-//	}
-//
-//
-//
-//	for (int i = *a_size - 1; i > 0; i--)
-//		if (quotient[i] == 0)
-//			(*a_size)--;
-//	
-//
-//	for (int i = *a_size - 1; i >= 0; i--)
-//		a[i] = quotient[i];
-//
-//	return *remainder;
-//}
+	//zwolnij_pamiec_uint(a);
+	n1->data = reszta.data;
+}

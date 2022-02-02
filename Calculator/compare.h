@@ -1,7 +1,7 @@
 #pragma once
+#include "number.h"
 
-
-char less(unsigned int* a, unsigned int* b, unsigned int a_size, unsigned int b_size);
-char less_equal(unsigned int* a, unsigned int* b, unsigned int a_size, unsigned int b_size);
-char greater(unsigned int* a, unsigned int* b, unsigned int a_size, unsigned int b_size);
-char wiekszy_rowny(unsigned int* a, unsigned int* b, unsigned int rozmiar_a, unsigned int rozmiar_b);
+char less(Number* n1, Number* n2);
+char less_equal(Number* n1, Number* n2);
+char greater(Number* n1, Number* n2);
+char wiekszy_rowny(Number* n1, Number* n2);

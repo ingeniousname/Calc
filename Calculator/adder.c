@@ -12,57 +12,57 @@ uint dodaj_uint(uint a, uint b, unsigned char* flaga_przeniesienia)
 }
 
 
-void dodaj_cale_liczby(uint** a, uint** b, uint* rozmiar_a, uint* rozmiar_b)
+void dodaj_cale_liczby(Number* n1, Number* n2)
 {
 	// chcemy, aby a > b
-	if (*rozmiar_b > *rozmiar_a)
+	if (n2->size > n1->size)
 	{
-		uint* pamiec = *a;
-		*a = *b;
-		*b = pamiec;
-		uint rozmiar = *rozmiar_a;
-		*rozmiar_a = *rozmiar_b;
-		*rozmiar_b = rozmiar;
+		unsigned* temp = n1->data;
+		unsigned sizetemp = n1->size;
+		n1->data = n2->data;
+		n1->size = n2->size;
+		n2->data = temp;
+		n2->size = sizetemp;
 	}
 	unsigned char* flaga_przeniesienia = zaalokuj_pamiec_char(sizeof(unsigned char));
 	*flaga_przeniesienia = 0;
 
 	// dodawanie
-	for (uint i = 0; i < *rozmiar_a; i++)
-		(*a)[i] = dodaj_uint((i < *rozmiar_a) ? (*a)[i] : 0, (i < *rozmiar_b) ? (*b)[i] : 0, flaga_przeniesienia);
+	for (uint i = 0; i < n1->size; i++)
+		(n1->data)[i] = dodaj_uint((i < n1->size) ? (n1->data)[i] : 0, (i < n2->size) ? (n2->data)[i] : 0, flaga_przeniesienia);
 	
 	// obs�uga przepelnienia
 	if (*flaga_przeniesienia)
 	{
-		rozszerz_pamiec(a, rozmiar_a, 1);
-		(*a)[*rozmiar_a - 1] = 1;
+		rozszerz(n1, 1);
+		(n1->data)[n1->size - 1] = 1;
 	}
 
 	zwolnij_pamiec_uchar(&flaga_przeniesienia);
 }
 
 
-void dodaj_uint_do_calej_liczby(uint** a, uint b, uint* rozmiar_a)
+void dodaj_uint_do_calej_liczby(Number* N,  uint b)
 {
 	unsigned char* flaga_przeniesienia = zaalokuj_pamiec_char(sizeof(unsigned char));
 	*flaga_przeniesienia = 0;
 
 	// dodawanie
-	(*a)[0] = dodaj_uint((*a)[0], b, flaga_przeniesienia);
+	(N->data)[0] = dodaj_uint((N->data)[0], b, flaga_przeniesienia);
 	int i = 1;
 
 	// obsluga przepelnienia
-	for (i; i < *rozmiar_a; i++)
+	for (i; i < N->size; i++)
 	{
 		if (*flaga_przeniesienia == 0) break;
-		(*a)[i] = dodaj_uint((*a)[i], 0, flaga_przeniesienia);
+		(N->data)[i] = dodaj_uint((N->data)[i], 0, flaga_przeniesienia);
 	}
 
 
-	if (i == *rozmiar_a && (*flaga_przeniesienia) != 0)
+	if (i == N->size && (*flaga_przeniesienia) != 0)
 	{
-		rozszerz_pamiec(a, rozmiar_a, 1);
-		(*a)[*rozmiar_a - 1] = 1;
+		rozszerz(N, 1);
+		(N->data)[N->size - 1] = 1;
 	}
 
 	zwolnij_pamiec_uchar(&flaga_przeniesienia);
@@ -82,28 +82,28 @@ uint odejmij_uint(uint a, uint b, unsigned char* pozyczka)
 }
 
 
-void odejmij_cale_liczby(uint** a, uint** b, uint* rozmiar_a, uint* rozmiar_b)
+void odejmij_cale_liczby(Number* n1, Number* n2)
 {
 	unsigned char* pozyczka = zaalokuj_pamiec_char(sizeof(unsigned char));
 	*pozyczka = 0;
 
 
 	int i = 0;
-	for (i; i < *rozmiar_b; i++)
-		(*a)[i] = odejmij_uint((*a)[i], (*b)[i], pozyczka);
+	for (i; i < n2->size; i++)
+		(n1->data)[i] = odejmij_uint((n1->data)[i], (n2->data)[i], pozyczka);
 	
 	// odejmowanie
-	while (i < *rozmiar_a && *pozyczka > 0)
+	while (i < n1->size && *pozyczka > 0)
 	{
-		(*a)[i] = odejmij_uint((*a)[i], 0, pozyczka);
+		(n1->data)[i] = odejmij_uint((n1->data)[i], 0, pozyczka);
 		i++;
 	}
 
 	// zmniejszanie rozmiaru wyniku (jezeli jest taka potrzeba)
-	for (int i = *rozmiar_a - 1; i > 0; i--)
+	for (int i = n1->size - 1; i > 0; i--)
 	{
-		if ((*a)[i] != 0) break;
-		(*rozmiar_a)--;
+		if ((n1->data)[i] != 0) break;
+		(n1->size)--;
 	}
 
 	zwolnij_pamiec_uchar(&pozyczka);

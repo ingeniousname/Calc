@@ -4,9 +4,9 @@
 #include <string.h>
 
 
-void zamien_na_dowolna_baze(unsigned int podstawa, unsigned int** liczba, unsigned int rozmiar)
+void zamien_na_dowolna_baze(unsigned int podstawa,  Number* N)
 {
-    if (rozmiar == 0 || (rozmiar == 1 && (*liczba)[0] == 0))
+    if (N->size == 0 || (N->size == 1 && (N->data)[0] == 0))
     {
         printf("%c", 48);
         return;
@@ -15,7 +15,7 @@ void zamien_na_dowolna_baze(unsigned int podstawa, unsigned int** liczba, unsign
     int potega_2do16 = 1 << 16;
 
     //obliczanie dlugosci wynikow
-    int rozmiar_nowej_liczby = rozmiar * 2 * (log(potega_2do16) / log(podstawa)) + 1;
+    int rozmiar_nowej_liczby = N->size * 2 * (log(potega_2do16) / log(podstawa)) + 1;
 
     //alokacja miejsca na kolejne potegi podstawy (kazda cyfra miesci sie w oddzielnym incie)
     int* potega_podstawy = zaalokuj_pamiec_int(sizeof(int) * (rozmiar_nowej_liczby + 1));
@@ -35,7 +35,7 @@ void zamien_na_dowolna_baze(unsigned int podstawa, unsigned int** liczba, unsign
 
 
     // 
-    for (int i = 0; i < rozmiar * 2; i++) 
+    for (int i = 0; i < N->size * 2; i++) 
     {
         int it = 0, pamiec, reszta = 0;
         // wynik[j] += (podstawa ^ i) * (j-ta cyfra duzej liczby w podstawie 2 ^ 16)
@@ -46,7 +46,7 @@ void zamien_na_dowolna_baze(unsigned int podstawa, unsigned int** liczba, unsign
         // ...wiecej czasu poswieca sie na wyrownywanie elementow tablicy do podstawy koncowej (tej, w ktorej chcemy aby liczba byla zapisana)...
         // ...ale po testach okazuje sie ze ten algorytm jest szybszy
         for (int j = 0; j <= warunek_petli; j++) 
-            wynik[j] += potega_podstawy[j] * ((*liczba)[i / 2] % potega_2do16);
+            wynik[j] += potega_podstawy[j] * ((N->data)[i / 2] % potega_2do16);
         
 
         pamiec = wynik[0];
@@ -82,7 +82,7 @@ void zamien_na_dowolna_baze(unsigned int podstawa, unsigned int** liczba, unsign
 
 
         if (it > warunek_petli) warunek_petli = it;
-        (*liczba)[i / 2] >>= 16;
+        (N->data)[i / 2] >>= 16;
     }
 
     int i = rozmiar_nowej_liczby;
@@ -104,13 +104,13 @@ void zamien_na_dowolna_baze(unsigned int podstawa, unsigned int** liczba, unsign
 
 }
 
-void zamien_na_bin(unsigned int** liczba, unsigned int rozmiar)
+void zamien_na_bin(Number* N)
 {
-    int j = rozmiar * 32 - 1;
+    int j = N->size * 32 - 1;
     uint potega_2 = 1 << 31;
 
     // pomijamy wiod�ce zera
-    while (((*liczba)[j / 32] & potega_2) == 0)
+    while (((N->data)[j / 32] & potega_2) == 0)
     {
         j--;
         potega_2 >>= 1;
@@ -120,7 +120,7 @@ void zamien_na_bin(unsigned int** liczba, unsigned int rozmiar)
     // sprawdzamy bity po kolei 
     for (j; j >= 0; j--)
     {
-        if ((*liczba)[j / 32] & potega_2)
+        if ((N->data)[j / 32] & potega_2)
             printf("%c", '1');
         else
             printf("%c", '0');
@@ -133,15 +133,15 @@ void zamien_na_bin(unsigned int** liczba, unsigned int rozmiar)
 
 
 
-void zamien_na_hex(unsigned int** liczba, unsigned int rozmiar)
+void zamien_na_hex(Number* N)
 {
     // najszybszy algorytm zamiany - preferowane uzycie dla duzych liczb
-    printf("%X", (*liczba)[rozmiar - 1]);
-    for (int i = rozmiar - 2; i >= 0; i--)
-        printf("%08X", (*liczba)[i]);
+    printf("%X", (N->data)[N->size - 1]);
+    for (int i = N->size - 2; i >= 0; i--)
+        printf("%08X", (N->data)[i]);
 }
 
-void inteligentna_zamiana(unsigned int podstawa, unsigned int** liczba, unsigned int rozmiar)
+void inteligentna_zamiana(unsigned int podstawa, Number* N)
 {
     if (podstawa < 2 || podstawa > 16)
     {
@@ -151,9 +151,9 @@ void inteligentna_zamiana(unsigned int podstawa, unsigned int** liczba, unsigned
 
     switch (podstawa)
     {
-    case 2: zamien_na_bin(liczba, rozmiar); break;
-    case 16: zamien_na_hex(liczba, rozmiar); break;
-    default: zamien_na_dowolna_baze(podstawa, liczba, rozmiar); break;
+    case 2: zamien_na_bin(N); break;
+    case 16: zamien_na_hex(N); break;
+    default: zamien_na_dowolna_baze(podstawa, N); break;
         
     }
 }
